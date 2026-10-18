@@ -6,6 +6,12 @@ on:
     tags: ['v*']
   pull_request:
     branches: [master, main]
+  workflow_dispatch:
+    inputs:
+      submit_to_amo:
+        description: Submit this version publicly to Mozilla (master only)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -49,7 +55,8 @@ jobs:
 
       - name: Check release tag matches package version
         if: startsWith(github.ref, 'refs/tags/')
-        run: test "$GITHUB_REF_NAME" = "v$(nix develop --command node -p "require('./package.json').version")"
+        run: |
+          nix develop --command node -e 'process.exit(process.env.GITHUB_REF_NAME === "v" + require("./package.json").version ? 0 : 1)'
 
       - name: Validate extension structure
         run: nix develop --command node tests/e2e/validate-extension.ts
@@ -69,6 +76,9 @@ jobs:
       - name: Archive matching source for Mozilla and GPL recipients
         run: git archive --format=zip --output=release/videospeed-source.zip HEAD
 
+      - name: Prepare public AMO listing metadata
+        run: nix develop --command bash -c 'node scripts/amo-metadata.ts > release/amo-metadata.json'
+
       - name: Upload release artifact
         uses: actions/upload-artifact@v7
         with:
@@ -76,11 +86,66 @@ jobs:
           path: |
             release/videospeed-*.xpi
             release/videospeed-source.zip
+            release/amo-metadata.json
           retention-days: 7
+
+  submit-to-amo:
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && inputs.submit_to_amo)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Configure a required reviewer before adding credentials to this environment.
+    environment: AMO_API_KEY
+    concurrency:
+      group: amo-listed-videospeed-firefox
+      cancel-in-progress: false
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v8
+        with:
+          name: videospeed-firefox-release
+          path: release
+      - name: Extract the tested XPI
+        run: unzip -q release/videospeed-*.xpi -d amo-dist
+      - name: Submit public version and wait up to 15 minutes for signing
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+        run: |
+          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
+            echo "::error::Configure AMO_API_KEY and AMO_API_SECRET in the AMO_API_KEY environment."
+            exit 1
+          fi
+          npx --yes web-ext@10.8.0 sign \
+            --source-dir=amo-dist \
+            --channel=listed \
+            --amo-metadata=release/amo-metadata.json \
+            --upload-source-code=release/videospeed-source.zip \
+            --approval-timeout=900000 \
+            --artifacts-dir=signed
+      - name: Explain submission outcome
+        if: always()
+        run: |
+          {
+            echo '## Mozilla submission'
+            echo 'Target: public/listed, videospeed-firefox@njl.dev, owned by the AMO API credential account.'
+            echo 'Only a successful signing step with a signed XPI means approval completed.'
+            echo 'A timeout or failure may occur AFTER submission. Check the Developer Hub before retrying; do not resubmit a pending version.'
+            echo 'Developer Hub: https://addons.mozilla.org/developers/'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve signed XPI
+        uses: actions/upload-artifact@v7
+        with:
+          name: videospeed-firefox-signed
+          path: signed/*.xpi
+          if-no-files-found: error
+          retention-days: 30
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: build-and-test
+    needs: [build-and-test, submit-to-amo]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -89,7 +154,11 @@ jobs:
         with:
           name: videospeed-firefox-release
           path: release
-      - name: Publish unsigned XPI and corresponding source
+      - uses: actions/download-artifact@v8
+        with:
+          name: videospeed-firefox-signed
+          path: signed
+      - name: Publish signed XPI and corresponding source
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -97,4 +166,4 @@ jobs:
           if ! gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Release $GITHUB_REF_NAME"
           fi
-          gh release upload "$GITHUB_REF_NAME" release/* --clobber
+          gh release upload "$GITHUB_REF_NAME" signed/*.xpi release/videospeed-source.zip --clobber
