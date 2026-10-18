@@ -11,7 +11,7 @@ const pkg = require(path.join(rootDir, 'package.json'));
 
 const distDir = path.join(rootDir, 'dist');
 const releaseDir = path.join(rootDir, 'release');
-const zipName = `videospeed-${pkg.version}.zip`;
+const zipName = `videospeed-${pkg.version}.xpi`;
 const zipPath = path.join(releaseDir, zipName);
 
 const AMO_SIZE_GUIDE = 200 * 1024 * 1024; // Conservative package size guide

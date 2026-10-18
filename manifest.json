@@ -1,13 +1,13 @@
 {
-  "name": "Video Speed Controller",
+  "name": "Video Speed Controller (NJL)",
   "short_name": "videospeed",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "manifest_version": 3,
   "description": "Speed up, slow down, advance and rewind HTML5 audio/video with shortcuts",
-  "homepage_url": "https://github.com/nyxar77/videospeed-firefox",
+  "homepage_url": "https://github.com/NickJLange/videospeed-firefox",
   "browser_specific_settings": {
     "gecko": {
-      "id": "videospeed-firefox@nyxar.github.io",
+      "id": "videospeed-firefox@njl.dev",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
         "required": ["none"]
@@ -52,7 +52,14 @@
       "matches": ["http://*/*", "https://*/*", "file:///*"],
       "all_frames": true,
       "match_about_blank": true,
-      "exclude_matches": ["https://hangouts.google.com/*", "https://meet.google.com/*"],
+      "exclude_matches": [
+        "https://hangouts.google.com/*",
+        "https://meet.google.com/*",
+        "*://flights.google.com/*",
+        "*://*.google.com/travel/flights",
+        "*://*.google.com/travel/flights?*",
+        "*://*.google.com/travel/flights/*"
+      ],
       "js": ["dist/content-bridge.js"],
       "run_at": "document_start",
       "world": "ISOLATED"
@@ -61,7 +68,14 @@
       "matches": ["http://*/*", "https://*/*", "file:///*"],
       "all_frames": true,
       "match_about_blank": true,
-      "exclude_matches": ["https://hangouts.google.com/*", "https://meet.google.com/*"],
+      "exclude_matches": [
+        "https://hangouts.google.com/*",
+        "https://meet.google.com/*",
+        "*://flights.google.com/*",
+        "*://*.google.com/travel/flights",
+        "*://*.google.com/travel/flights?*",
+        "*://*.google.com/travel/flights/*"
+      ],
       "css": ["dist/styles/inject.css"],
       "js": ["dist/inject.js"],
       "run_at": "document_start",

@@ -3,8 +3,12 @@ name: CI
 on:
   push:
     branches: [master, main]
+    tags: ['v*']
   pull_request:
     branches: [master, main]
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
@@ -37,8 +41,15 @@ jobs:
       - name: Lint source
         run: nix develop --command npm run lint
 
+      - name: Check types
+        run: nix develop --command npm run typecheck
+
       - name: Build release extension
-        run: nix develop --command npm run build:release
+        run: nix develop --command make build
+
+      - name: Check release tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: test "$GITHUB_REF_NAME" = "v$(nix develop --command node -p "require('./package.json').version")"
 
       - name: Validate extension structure
         run: nix develop --command node tests/e2e/validate-extension.ts
@@ -49,13 +60,41 @@ jobs:
       - name: Run tests
         run: nix develop --command npm test
 
-      - name: Package release zip
-        run: nix develop --command node scripts/package-release.ts
+      - name: Install Firefox for regression test
+        run: nix develop --command npx puppeteer browsers install firefox
+
+      - name: Test packaged extension in Firefox
+        run: nix develop --command npm run test:firefox -- release/videospeed-*.xpi
+
+      - name: Archive matching source for Mozilla and GPL recipients
+        run: git archive --format=zip --output=release/videospeed-source.zip HEAD
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v7
-        if: always()
         with:
           name: videospeed-firefox-release
-          path: release/videospeed-*.zip
+          path: |
+            release/videospeed-*.xpi
+            release/videospeed-source.zip
           retention-days: 7
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: videospeed-firefox-release
+          path: release
+      - name: Publish unsigned XPI and corresponding source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Release $GITHUB_REF_NAME"
+          fi
+          gh release upload "$GITHUB_REF_NAME" release/* --clobber

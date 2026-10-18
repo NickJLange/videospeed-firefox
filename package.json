@@ -1,6 +1,6 @@
 {
   "name": "video-speed-controller",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "description": "Speed up, slow down, advance and rewind HTML5 audio/video with shortcuts",
   "license": "GPL-3.0-or-later",
   "type": "module",
@@ -12,6 +12,7 @@
     "test:unit": "vitest run tests/unit/",
     "test:integration": "vitest run tests/integration/",
     "test:e2e": "npm run build && node tests/e2e/run-e2e.ts",
+    "test:firefox": "node tests/e2e/google-flights.e2e.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",

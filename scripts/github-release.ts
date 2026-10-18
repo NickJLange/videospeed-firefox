@@ -12,7 +12,7 @@ const pkg = require(path.join(rootDir, 'package.json'));
 const version = pkg.version;
 const tag = `v${version}`;
 const releaseDir = path.join(rootDir, 'release');
-const zipName = `videospeed-${version}.zip`;
+const zipName = `videospeed-${version}.xpi`;
 const zipPath = path.join(releaseDir, zipName);
 
 function run(cmd: string): string {

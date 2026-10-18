@@ -7,6 +7,28 @@
 Video Speed Controller adds a small controller to videos and audio in Firefox. Change the
 playback speed from the page, the extension popup, or your keyboard.
 
+## NJL permanent fork
+
+This fork uses [nyxar77/videospeed-firefox](https://github.com/nyxar77/videospeed-firefox)
+as its base rather than the unmaintained codebicycle version. It retains the Firefox-first
+runtime, batched DOM observation, settings import/export, and test suite. Firefox 140+
+(Android 142+) is required. The GPL-3.0-or-later license and upstream attribution are preserved.
+
+**Google Flights documents are excluded at load time.** Firefox does not inject either content script or
+the controller stylesheet at `flights.google.com` or `*.google.com/travel/flights`
+(including queries and subpaths). This prevents controller DOM observation on those pages,
+independent of saved preferences. Other Google pages remain enabled. This is a compatibility
+exclusion, not a claim that the observer is now fast enough on every application.
+The exclusion applies when a document loads; same-document navigation from an enabled Google
+page and third-party frames with their own URLs are not covered by these match patterns.
+
+The fork has its own add-on ID, `videospeed-firefox@njl.dev`. Disable the old controller
+before testing: installing this fork does not replace it or stop its observers. Settings
+are separate; compatible settings can be imported through the options page.
+
+Build an unsigned XPI with `npm ci && make build`. See [PUBLISHING.md](PUBLISHING.md)
+for tests, tag-triggered GitHub releases, Mozilla signing, and corresponding source.
+
 ## Features and perks
 
 **Playback controls**
@@ -46,7 +68,7 @@ Firefox storage. Read the full [privacy policy](PRIVACY.md) for details.
 
 ## Help and project information
 
-If something is broken, open an [issue](https://github.com/nyxar77/videospeed-firefox/issues).
+If something is broken, open an [issue](https://github.com/NickJLange/videospeed-firefox/issues).
 There are separate forms for general bugs, requests, and problems that happen on a particular
 website.
 
@@ -57,8 +79,9 @@ maintainers can also read the [release process](docs/release.md).
 
 Video Speed Controller was created by
 [Ilya Grigorik](https://github.com/igrigorik) with contributions from the community. This project
-is a Firefox version of the original
-[Video Speed Controller](https://github.com/igrigorik/videospeed).
+is based on [nyxar77's Firefox port](https://github.com/nyxar77/videospeed-firefox) of the original
+[Video Speed Controller](https://github.com/igrigorik/videospeed). NJL-specific changes are
+maintained independently; upstream contribution is not required for this fork.
 
 ## License
 
