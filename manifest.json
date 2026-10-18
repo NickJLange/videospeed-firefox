@@ -58,7 +58,10 @@
         "*://flights.google.com/*",
         "*://*.google.com/travel/flights",
         "*://*.google.com/travel/flights?*",
-        "*://*.google.com/travel/flights/*"
+        "*://*.google.com/travel/flights/*",
+        "*://*.google.com/flights",
+        "*://*.google.com/flights?*",
+        "*://*.google.com/flights/*"
       ],
       "js": ["dist/content-bridge.js"],
       "run_at": "document_start",
@@ -74,7 +77,10 @@
         "*://flights.google.com/*",
         "*://*.google.com/travel/flights",
         "*://*.google.com/travel/flights?*",
-        "*://*.google.com/travel/flights/*"
+        "*://*.google.com/travel/flights/*",
+        "*://*.google.com/flights",
+        "*://*.google.com/flights?*",
+        "*://*.google.com/flights/*"
       ],
       "css": ["dist/styles/inject.css"],
       "js": ["dist/inject.js"],

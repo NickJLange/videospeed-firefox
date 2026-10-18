@@ -15,12 +15,14 @@ runtime, batched DOM observation, settings import/export, and test suite. Firefo
 (Android 142+) is required. The GPL-3.0-or-later license and upstream attribution are preserved.
 
 **Google Flights documents are excluded at load time.** Firefox does not inject either content script or
-the controller stylesheet at `flights.google.com` or `*.google.com/travel/flights`
+the controller stylesheet at `flights.google.com`, `*.google.com/travel/flights`, or `*.google.com/flights`
 (including queries and subpaths). This prevents controller DOM observation on those pages,
 independent of saved preferences. Other Google pages remain enabled. This is a compatibility
 exclusion, not a claim that the observer is now fast enough on every application.
 The exclusion applies when a document loads; same-document navigation from an enabled Google
 page and third-party frames with their own URLs are not covered by these match patterns.
+The legacy `/flights` exclusion preserves the useful part of the
+[earlier NJL fork's fix](https://github.com/NickJLange/videospeed/pull/1), without disabling all Travel pages.
 
 The fork has its own add-on ID, `videospeed-firefox@njl.dev`. Disable the old controller
 before testing: installing this fork does not replace it or stop its observers. Settings

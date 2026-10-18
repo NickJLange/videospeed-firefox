@@ -28,9 +28,13 @@ try {
     ['https://www.google.com/travel/flights?hl=en#search', false],
     ['https://www.google.com/travel/flights/search?tfs=example', false],
     ['https://google.com/travel/flights?hl=de', false],
+    ['https://www.google.com/flights', false],
+    ['https://www.google.com/flights?hl=en', false],
+    ['https://www.google.com/flights/search', false],
     ['https://www.google.com/travel/hotels', true],
     ['https://www.google.com/search?q=flights', true],
     ['https://www.google.com/travel/flights-guide', true],
+    ['https://www.google.com/flights-guide', true],
     ['https://www.example.com/?next=https://flights.google.com/', true],
     ['https://flights.google.com.example.com/', true],
   ];
