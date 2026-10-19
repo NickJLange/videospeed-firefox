@@ -39,7 +39,7 @@ or the email-like add-on ID. A GitHub fork does not inherit repository/environme
 1. Enable workflows on the fork's [Actions page](https://github.com/NickJLange/videospeed-firefox/actions)
    if GitHub prompts for fork approval.
 2. In [repository environments](https://github.com/NickJLange/videospeed-firefox/settings/environments),
-   create `AMO_API_KEY`. Add NickJLange as a **required reviewer** before adding secrets. Permit
+   use `Mozilla Stuff`. Add NickJLange as a **required reviewer**. Permit
    deployments only from branch `master` and release tags matching `v*`.
 3. While signed into the intended Mozilla account, obtain its existing credentials from
    [AMO API keys](https://addons.mozilla.org/developers/addon/api/key/). Add them as environment
@@ -48,7 +48,9 @@ or the email-like add-on ID. A GitHub fork does not inherit repository/environme
 
 An environment name alone is not an approval gate: its required-reviewer rule must be configured
 in GitHub. Only the signing job can access the environment secrets. Fork PRs and ordinary branch
-pushes run checks but never submit to AMO.
+pushes run checks but never submit to AMO. Automatic tag submissions fail closed if reviewer
+protection is missing or cannot be verified. An explicit manual dispatch with `submit_to_amo`
+enabled authorizes submission even before reviewer protection is configured.
 
 ## First public submission
 
@@ -58,7 +60,8 @@ pushes run checks but never submit to AMO.
    so the metadata uses a custom license to preserve **GPL-3.0-or-later**.
 2. In **Actions → CI → Run workflow**, select `master` and enable `submit_to_amo`.
 3. CI builds and tests the XPI, generates metadata, and archives source from the exact commit.
-   Review that commit/version, then approve the `AMO_API_KEY` environment deployment.
+   Review that commit/version before dispatch; if required reviewers are configured, also
+   approve the `Mozilla Stuff` environment deployment.
 4. The signing job submits the tested package with `web-ext@10.8.0 --channel=listed`, listing
    metadata, build instructions and corresponding source. The tool can register the first version;
    a separate manual AMO registration is not necessary.
